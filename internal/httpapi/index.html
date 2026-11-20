@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBServer 配置</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --line: #e3e8f0;
+    --text: #1f2a3d;
+    --muted: #6b778c;
+    --accent: #2f6fed;
+    --accent-dark: #2358c9;
+    --danger: #d9534f;
+    --ok: #1f9d55;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    padding-bottom: 90px;
+  }
+  header {
+    padding: 22px 28px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .status { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  .pill {
+    background: #e8eefc;
+    color: var(--accent-dark);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .pill.ok { background: #def5e7; color: var(--ok); }
+  .pill.off { background: #eef1f5; color: var(--muted); }
+  .pill.bad { background: #fde4e4; color: var(--danger); }
+  main {
+    padding: 0 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px 20px;
+    box-shadow: 0 1px 2px rgba(31, 42, 61, .04);
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2::before {
+    content: "";
+    width: 4px;
+    height: 15px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px 16px;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  label.wide { grid-column: 1 / -1; }
+  input[type=text], input[type=password], input[type=number], select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text);
+    background: #fbfcfe;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); background: #fff; }
+  .switch {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text);
+    padding-top: 22px;
+  }
+  .switch input { width: 16px; height: 16px; }
+  footer {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, .94);
+    border-top: 1px solid var(--line);
+    padding: 14px 28px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    backdrop-filter: blur(6px);
+  }
+  button {
+    border: none;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  button.primary { background: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-dark); }
+  button.ghost { background: #eef1f5; color: var(--text); }
+  button.ghost:hover { background: #e2e7ee; }
+  button.danger { background: var(--danger); color: #fff; }
+  button.danger:hover { background: #c7433f; }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 92px;
+    transform: translateX(-50%) translateY(12px);
+    background: #1f2a3d;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    max-width: 80vw;
+  }
+  .toast.show { opacity: .95; transform: translateX(-50%) translateY(0); }
+  .toast.err { background: #b23b37; }
+  .card.full { grid-column: 1 / -1; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; background: #fafbfd; }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; }
+  .badge.online { background: #def5e7; color: var(--ok); }
+  .badge.offline { background: #eef1f5; color: var(--muted); }
+  .badge.fail { background: #fde4e4; color: var(--danger); }
+  button.mini { padding: 4px 10px; font-size: 12px; background: #eef1f5; color: var(--text); }
+  button.mini:hover { background: #e2e7ee; }
+  .empty { color: var(--muted); text-align: center; padding: 18px 0; }
+  @media (max-width: 640px) {
+    header, main, footer { padding-left: 14px; padding-right: 14px; }
+    main { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>GBServer 国标转码平台</h1>
+  <div class="status" id="status"><span class="pill off">加载中…</span></div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>SIP 服务</h2>
+    <div class="grid">
+      <label>本机国标 ID<input id="sip_id" type="text"></label>
+      <label>SIP 域<input id="sip_domain" type="text"></label>
+      <label>SIP IP（留空自动探测）<input id="sip_ip" type="text" placeholder="留空自动探测"></label>
+      <label>SIP 端口<input id="sip_port" type="number" min="1" max="65535"></label>
+      <label>向上级发送的协议
+        <select id="sip_transport">
+          <option value="udp">UDP</option>
+          <option value="tcp">TCP</option>
+        </select>
+      </label>
+      <label>HTTP 管理端口<input id="http_port" type="number" min="1" max="65535"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>转码服务</h2>
+    <div class="grid">
+      <label class="wide">TransferServer 地址<input id="transfer_url" type="text" placeholder="http://127.0.0.1:8080"></label>
+      <label class="switch"><input id="transcode" type="checkbox">开启转码</label>
+      <label class="switch"><input id="decrypt" type="checkbox">开启解密（SVAC）</label>
+      <label>转码输出格式
+        <select id="transcode_format">
+          <option value="h264">H.264</option>
+          <option value="h265">H.265</option>
+        </select>
+      </label>
+      <label>拉流协议（下级 → 转码）
+        <select id="src_protocol">
+          <option value="tcp">TCP</option>
+          <option value="udp">UDP</option>
+        </select>
+      </label>
+      <label>帧率 FPS<input id="fps" type="number" min="1" max="120"></label>
+      <label>码率 bps<input id="bitrate" type="number" min="1"></label>
+      <label class="wide">解密密钥 VKEK（16 字节 base64，可留空）<input id="vkek" type="text"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>上级平台</h2>
+    <div class="grid">
+      <label class="switch"><input id="upper_enable" type="checkbox">启用上级对接</label>
+      <label>注册 ID（留空用 sip.id）<input id="upper_id" type="text" placeholder="默认同 sip.id"></label>
+      <label>上级域（留空用 sip.domain）<input id="upper_domain" type="text" placeholder="默认同 sip.domain"></label>
+      <label>上级 SIP IP<input id="upper_ip" type="text"></label>
+      <label>上级 SIP 端口<input id="upper_port" type="number" min="1" max="65535"></label>
+      <label>传输协议
+        <select id="upper_transport">
+          <option value="udp">UDP</option>
+          <option value="tcp">TCP</option>
+        </select>
+      </label>
+      <label>注册密码<input id="upper_password" type="password"></label>
+      <label>注册有效期（秒）<input id="upper_expires" type="number" min="1"></label>
+      <label>心跳间隔（秒）<input id="upper_keepalive" type="number" min="1"></label>
+      <label>目录上报间隔（秒，0 不上报）<input id="upper_catalog" type="number" min="0"></label>
+    </div>
+    <div class="hint">启用后重启生效：GBServer 会向该地址主动注册并上报目录。</div>
+  </section>
+
+  <section class="card">
+    <h2>下级接入</h2>
+    <div class="grid">
+      <label class="wide">下级注册密码（留空不鉴权）<input id="lower_password" type="password"></label>
+    </div>
+    <div class="hint">下级平台无需配置 IP，其主动 REGISTER 后自动登记并查询目录。</div>
+  </section>
+
+  <section class="card full">
+    <h2>下级设备</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>设备 ID</th>
+            <th>地址</th>
+            <th>注册时间</th>
+            <th>最近心跳</th>
+            <th>通道</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="dev-body">
+          <tr><td class="empty" colspan="7">暂无下级设备</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card full">
+    <h2>通道列表</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>通道 ID</th>
+            <th>所属设备</th>
+            <th>名称</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody id="ch-body">
+          <tr><td class="empty" colspan="4">暂无通道</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card full">
+    <h2>码流验签</h2>
+    <div class="grid">
+      <label>验签通道
+        <select id="verify_channel">
+          <option value="">（暂无通道）</option>
+        </select>
+      </label>
+      <label>证书 ID（留空默认用通道 ID）<input id="verify_cert" type="text" list="cert-list" placeholder="如 13100000001182000223"><datalist id="cert-list"></datalist></label>
+    </div>
+    <div class="hint">证书来自 TransferServer 的 certs 目录，文件名为 {证书ID}_sign.cer，可从输入框下拉选择已有证书。</div>
+    <div style="margin-top:12px">
+      <button id="btn-verify-start" class="primary" type="button">开始验签</button>
+    </div>
+    <div class="hint">只拉流验签，不转码、不向上级推流；验签结果见 TransferServer 日志（journalctl -u transferserver）。</div>
+    <div class="table-wrap" style="margin-top:12px">
+      <table>
+        <thead>
+          <tr>
+            <th>通道</th>
+            <th>证书</th>
+            <th>设备</th>
+            <th>收流端口</th>
+            <th>状态</th>
+            <th>验签结果</th>
+            <th>开始时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="verify-body">
+          <tr><td class="empty" colspan="8">暂无验签会话</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <button id="btn-refresh" class="ghost" type="button">刷新</button>
+  <button id="btn-save" class="primary" type="button">保存配置</button>
+  <button id="btn-save-restart" class="danger" type="button">保存并重启</button>
+</footer>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  const $ = function (id) { return document.getElementById(id); };
+  let toastTimer = null;
+
+  function setVal(id, v) { $(id).value = (v === undefined || v === null) ? '' : v; }
+  function setCheck(id, v) { $(id).checked = !!v; }
+  function val(id) { return $(id).value.trim(); }
+  function num(id) { const n = parseInt($(id).value, 10); return isNaN(n) ? 0 : n; }
+  function checked(id) { return $(id).checked; }
+
+  function toast(msg, isErr) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.className = 'toast'; }, 3200);
+  }
+
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function loadConfig() {
+    try {
+      const r = await fetch('/api/config', { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const c = await r.json();
+      setVal('sip_id', c.sip_id);
+      setVal('sip_domain', c.sip_domain);
+      setVal('sip_ip', c.sip_ip);
+      setVal('sip_port', c.sip_port);
+      setVal('sip_transport', c.transport || 'udp');
+      setVal('http_port', c.http_port);
+      setVal('transfer_url', c.transfer_url);
+      setCheck('transcode', c.transcode);
+      setCheck('decrypt', c.decrypt);
+      setVal('transcode_format', c.transcode_format || 'h264');
+      setVal('src_protocol', c.src_protocol || 'tcp');
+      setVal('fps', c.fps);
+      setVal('bitrate', c.bitrate);
+      setVal('vkek', c.vkek);
+      const u = c.upper || {};
+      setCheck('upper_enable', u.enable);
+      setVal('upper_id', u.id);
+      setVal('upper_domain', u.domain);
+      setVal('upper_ip', u.ip);
+      setVal('upper_port', u.port);
+      setVal('upper_transport', u.transport || 'udp');
+      setVal('upper_password', u.password);
+      setVal('upper_expires', u.expires);
+      setVal('upper_keepalive', u.keepalive_interval);
+      setVal('upper_catalog', u.catalog_interval);
+      setVal('lower_password', c.lower_default_password);
+    } catch (e) {
+      toast('读取配置失败: ' + e.message, true);
+    }
+  }
+
+  function collect() {
+    return {
+      sip_id: val('sip_id'),
+      sip_domain: val('sip_domain'),
+      sip_ip: val('sip_ip'),
+      sip_port: num('sip_port'),
+      transport: val('sip_transport'),
+      http_port: num('http_port'),
+      transfer_url: val('transfer_url'),
+      transcode: checked('transcode'),
+      transcode_format: val('transcode_format'),
+      src_protocol: val('src_protocol'),
+      decrypt: checked('decrypt'),
+      vkek: val('vkek'),
+      fps: num('fps'),
+      bitrate: num('bitrate'),
+      upper: {
+        enable: checked('upper_enable'),
+        id: val('upper_id'),
+        domain: val('upper_domain'),
+        ip: val('upper_ip'),
+        port: num('upper_port'),
+        transport: val('upper_transport'),
+        password: val('upper_password'),
+        expires: num('upper_expires'),
+        keepalive_interval: num('upper_keepalive'),
+        catalog_interval: num('upper_catalog')
+      },
+      lower_default_password: val('lower_password')
+    };
+  }
+
+  async function save(restart) {
+    const btn = restart ? $('btn-save-restart') : $('btn-save');
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(collect())
+      });
+      let data = {};
+      try { data = await r.json(); } catch (e) {}
+      if (!r.ok || !data.ok) {
+        toast(data.error || ('保存失败 (HTTP ' + r.status + ')'), true);
+        return;
+      }
+      if (!restart) {
+        toast('配置已保存，重启 GBServer 后生效');
+        return;
+      }
+      toast('配置已保存，正在重启…');
+      try { await fetch('/api/restart', { method: 'POST' }); } catch (e) {}
+      const newPort = String(num('http_port') || 8081);
+      const curPort = location.port || (location.protocol === 'https:' ? '443' : '80');
+      if (newPort !== curPort) {
+        toast('管理端口已变更，正在跳转到新端口…');
+        setTimeout(function () {
+          location.href = location.protocol + '//' + location.hostname + ':' + newPort + '/';
+        }, 2500);
+        return;
+      }
+      await waitOnline();
+    } catch (e) {
+      toast('保存失败: ' + e.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function waitOnline() {
+    for (let i = 0; i < 30; i++) {
+      await sleep(1000);
+      try {
+        const r = await fetch('/api/status', { cache: 'no-store' });
+        if (r.ok) { location.reload(); return; }
+      } catch (e) {}
+    }
+    toast('服务未在预期时间内恢复，请手动检查', true);
+  }
+
+  async function refreshStatus() {
+    try {
+      const r = await fetch('/api/status', { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const s = await r.json();
+      const upper = s.upper_registered
+        ? '<span class="pill ok">上级已注册</span>'
+        : '<span class="pill off">上级未注册</span>';
+      $('status').innerHTML =
+        upper +
+        '<span class="pill">设备 ' + s.device_count + '</span>' +
+        '<span class="pill">通道 ' + s.channel_count + '</span>' +
+        '<span class="pill">会话 ' + s.session_count + '</span>' +
+        '<span class="pill">SIP ' + s.sip_ip + ':' + s.sip_port + '</span>' +
+        '<span class="pill">运行 ' + s.uptime + '</span>';
+    } catch (e) {
+      $('status').innerHTML = '<span class="pill bad">服务不可达</span>';
+    }
+  }
+
+  function esc(v) {
+    return String(v === undefined || v === null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function fmtTime(v) {
+    if (!v) return '-';
+    const t = new Date(v);
+    if (isNaN(t.getTime())) return esc(v);
+    return t.toLocaleString('zh-CN', { hour12: false });
+  }
+
+  async function loadDevices() {
+    try {
+      const results = await Promise.all([
+        fetch('/api/devices', { cache: 'no-store' }),
+        fetch('/api/channels', { cache: 'no-store' })
+      ]);
+      const deviceData = await results[0].json();
+      const channelData = await results[1].json();
+      const devices = deviceData.list || [];
+      const channels = channelData.list || [];
+      fillVerifyChannels(channels);
+
+      const counts = {};
+      channels.forEach(function (ch) {
+        const key = ch.device_id || '';
+        counts[key] = (counts[key] || 0) + 1;
+      });
+
+      const devBody = $('dev-body');
+      if (!devices.length) {
+        devBody.innerHTML = '<tr><td class="empty" colspan="7">暂无下级设备</td></tr>';
+      } else {
+        devBody.innerHTML = devices.map(function (d) {
+          const last = d.last_seen ? new Date(d.last_seen).getTime() : 0;
+          const online = last && (Date.now() - last < 180000);
+          return '<tr>' +
+            '<td>' + esc(d.id) + '</td>' +
+            '<td>' + esc(d.ip + ':' + d.port + '/' + d.proto) + '</td>' +
+            '<td>' + fmtTime(d.register_at) + '</td>' +
+            '<td>' + fmtTime(d.last_seen) + '</td>' +
+            '<td>' + (counts[d.id] || 0) + '</td>' +
+            '<td><span class="badge ' + (online ? 'online' : 'offline') + '">' + (online ? '在线' : '离线') + '</span></td>' +
+            '<td><button class="mini" type="button" data-device="' + esc(d.id) + '">刷新目录</button></td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      const chBody = $('ch-body');
+      if (!channels.length) {
+        chBody.innerHTML = '<tr><td class="empty" colspan="4">暂无通道</td></tr>';
+      } else {
+        chBody.innerHTML = channels.map(function (ch) {
+          return '<tr>' +
+            '<td>' + esc(ch.id) + '</td>' +
+            '<td>' + esc(ch.device_id) + '</td>' +
+            '<td>' + esc(ch.name) + '</td>' +
+            '<td>' + esc(ch.status || '-') + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+    } catch (e) {
+      // 网络异常时保留上次内容
+    }
+  }
+
+  function fillVerifyChannels(channels) {
+    const sel = $('verify_channel');
+    const current = sel.value;
+    if (!channels.length) {
+      sel.innerHTML = '<option value="">（暂无通道）</option>';
+      return;
+    }
+    sel.innerHTML = channels.map(function (ch) {
+      const name = ch.name ? ' - ' + ch.name : '';
+      return '<option value="' + esc(ch.id) + '">' + esc(ch.id + name) + '</option>';
+    }).join('');
+    if (current && channels.some(function (ch) { return ch.id === current; })) {
+      sel.value = current;
+    }
+  }
+
+  async function loadVerifySessions() {
+    try {
+      const r = await fetch('/api/verify/sessions', { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      const list = data.list || [];
+      const body = $('verify-body');
+      if (!list.length) {
+        body.innerHTML = '<tr><td class="empty" colspan="8">暂无验签会话</td></tr>';
+        return;
+      }
+      body.innerHTML = list.map(function (s) {
+        let resultHtml = '<span class="badge offline">等待验签</span>';
+        if (s.verify_result === 'success') {
+          resultHtml = '<span class="badge online">成功（' + (s.verify_success || 0) + '）</span>';
+        } else if (s.verify_result === 'fail') {
+          resultHtml = '<span class="badge fail" title="' + esc(s.verify_detail || '') + '">失败（' + (s.verify_fail || 0) + '）</span>';
+        }
+        return '<tr>' +
+          '<td>' + esc(s.channel_id) + '</td>' +
+          '<td>' + esc(s.cert_id) + '</td>' +
+          '<td>' + esc(s.device_addr) + '</td>' +
+          '<td>' + esc(s.recv_port) + '</td>' +
+          '<td>' + esc(s.state) + '</td>' +
+          '<td>' + resultHtml + '</td>' +
+          '<td>' + fmtTime(s.created_at) + '</td>' +
+          '<td><button class="mini" type="button" data-verify="' + esc(s.id) + '">停止</button></td>' +
+          '</tr>';
+      }).join('');
+    } catch (e) {
+      // 保留上次内容
+    }
+  }
+
+  async function loadVerifyCerts() {
+    try {
+      const r = await fetch('/api/verify/certs', { cache: 'no-store' });
+      if (!r.ok) return;
+      const data = await r.json();
+      const list = data.list || [];
+      $('cert-list').innerHTML = list.map(function (c) {
+        return '<option value="' + esc(c) + '"></option>';
+      }).join('');
+    } catch (e) {
+      // 忽略
+    }
+  }
+
+  $('dev-body').addEventListener('click', async function (e) {
+    const btn = e.target.closest('button[data-device]');
+    if (!btn) return;
+    btn.disabled = true;
+    try {
+      await fetch('/api/catalog/refresh?device=' + encodeURIComponent(btn.dataset.device), { method: 'POST' });
+      toast('已发送目录查询');
+      setTimeout(loadDevices, 1500);
+    } catch (err) {
+      toast('刷新目录失败', true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('btn-verify-start').addEventListener('click', async function () {
+    const channel = $('verify_channel').value;
+    if (!channel) {
+      toast('请先选择验签通道', true);
+      return;
+    }
+    const cert = val('verify_cert');
+    const btn = this;
+    btn.disabled = true;
+    try {
+      let url = '/api/verify/start?channel=' + encodeURIComponent(channel);
+      if (cert) url += '&cert_id=' + encodeURIComponent(cert);
+      const r = await fetch(url, { method: 'POST' });
+      let data = {};
+      try { data = await r.json(); } catch (e) {}
+      if (!r.ok || !data.ok) {
+        toast(data.error || ('启动失败 (HTTP ' + r.status + ')'), true);
+        return;
+      }
+      toast('验签已启动，收流端口 ' + data.recv_port);
+      loadVerifySessions();
+    } catch (e) {
+      toast('启动失败: ' + e.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('verify-body').addEventListener('click', async function (e) {
+    const btn = e.target.closest('button[data-verify]');
+    if (!btn) return;
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/verify/stop?id=' + encodeURIComponent(btn.dataset.verify), { method: 'POST' });
+      let data = {};
+      try { data = await r.json(); } catch (err) {}
+      if (!r.ok || !data.ok) {
+        toast(data.error || '停止失败', true);
+        return;
+      }
+      toast('验签已停止');
+      loadVerifySessions();
+    } catch (err) {
+      toast('停止失败: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('btn-refresh').addEventListener('click', function () { loadConfig(); loadDevices(); loadVerifySessions(); loadVerifyCerts(); });
+  $('btn-save').addEventListener('click', function () { save(false); });
+  $('btn-save-restart').addEventListener('click', function () {
+    if (confirm('保存配置并重启 GBServer？重启期间服务会短暂中断。')) save(true);
+  });
+
+  loadConfig();
+  refreshStatus();
+  loadDevices();
+  loadVerifySessions();
+  loadVerifyCerts();
+  setInterval(function () { refreshStatus(); loadDevices(); loadVerifySessions(); }, 5000);
+})();
+</script>
+</body>
+</html>
